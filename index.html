@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Idiom in Action</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { font-family: 'Segoe UI', system-ui, sans-serif; }
+    .card { transition: all 0.3s ease; }
+    .card:hover { transform: translateY(-8px); }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 to-purple-50 min-h-screen">
+
+  <div class="max-w-4xl mx-auto p-6">
+
+    <header class="text-center mb-10 pt-8">
+      <h1 class="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+        Idiom in Action
+      </h1>
+      <p class="text-xl text-gray-600 mt-3">Learn English idioms through real movie moments</p>
+    </header>
+
+    <!-- Навигация -->
+    <nav class="flex justify-center gap-3 mb-12 bg-white shadow rounded-3xl p-2 w-fit mx-auto">
+      <a href="#" onclick="showPage('home')" class="nav-link px-6 py-3 rounded-2xl font-medium hover:bg-indigo-50">Home</a>
+      <a href="#" onclick="showPage('scenes')" class="nav-link px-6 py-3 rounded-2xl font-medium hover:bg-indigo-50">Scenes</a>
+      <a href="#" onclick="showPage('bank')" class="nav-link px-6 py-3 rounded-2xl font-medium hover:bg-indigo-50">Idiom Bank</a>
+      <a href="#" onclick="showPage('progress')" class="nav-link px-6 py-3 rounded-2xl font-medium hover:bg-indigo-50">Progress</a>
+    </nav>
+
+    <!-- HOME -->
+    <div id="home" class="page">
+      <div class="bg-white rounded-3xl shadow-2xl p-12 text-center">
+        <h2 class="text-4xl font-semibold mb-6">Master idioms the fun way</h2>
+        <p class="text-lg text-gray-600 mb-10 max-w-md mx-auto">
+          Watch short movie clips → Learn one powerful idiom → Test yourself
+        </p>
+        <button onclick="showPage('scenes')" 
+                class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-10 py-5 rounded-3xl text-xl font-semibold hover:scale-105 transition">
+          Start Learning
+        </button>
+      </div>
+    </div>
+
+    <!-- SCENES -->
+    <div id="scenes" class="page hidden">
+      <h2 class="text-3xl font-bold mb-8 text-center">Choose a Scene</h2>
+      <div id="scenes-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="quiz" class="page hidden">
+      <button onclick="showPage('scenes')" class="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 mb-6">
+        ← Back to Scenes
+      </button>
+      <div id="quiz-content" class="bg-white rounded-3xl shadow-2xl p-8"></div>
+    </div>
+
+    <!-- IDIOM BANK -->
+    <div id="bank" class="page hidden">
+      <h2 class="text-3xl font-bold mb-8">All Idioms</h2>
+      <div id="bank-list" class="space-y-6"></div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div id="progress" class="page hidden">
+      <h2 class="text-3xl font-bold mb-8">Your Progress</h2>
+      <div id="progress-content" class="bg-white rounded-3xl shadow-2xl p-12 text-center"></div>
+    </div>
+  </div>
+
+  <script>
+    let scenes = [
+      {
+        id: 1,
+        title: "Friends - We were on a break!",
+        movie: "Friends",
+        video: "https://www.youtube.com/embed/7sL4Q2t1k0A",
+        idiom: "on a break",
+        meaning: "Временно расстаться, взять паузу в отношениях",
+        text: "Ross: Rachel, we were on a break!\nRachel: You slept with someone else?!",
+        options: [
+          "Временно расстаться",
+          "Сломать что-то",
+          "Отдохнуть от работы",
+          "Поспорить"
+        ],
+        correct: 0
+      },
+      {
+        id: 2,
+        title: "The Office - Think outside the box",
+        movie: "The Office",
+        video: "https://www.youtube.com/embed/5f5f5f5f5f5", // замени на реальный embed
+        idiom: "think outside the box",
+        meaning: "Думать креативно, нестандартно",
+        text: "We need to think outside the box!",
+        options: [
+          "Думать нестандартно",
+          "Думать о коробках",
+          "Работать медленно",
+          "Игнорировать правила"
+        ],
+        correct: 0
+      },
+      {
+        id: 3,
+        title: "Forrest Gump",
+        movie: "Forrest Gump",
+        video: "https://www.youtube.com/embed/5f5f5f5f5f5", // замени
+        idiom: "life is like a box of chocolates",
+        meaning: "Жизнь непредсказуема",
+        text: "Mama always said life is like a box of chocolates. You never know what you're gonna get.",
+        options: [
+          "Жизнь непредсказуема",
+          "Жизнь сладкая",
+          "Жизнь как конфеты",
+          "Всегда знаешь, что будет"
+        ],
+        correct: 0
+      }
+    ];
+
+    let progress = JSON.parse(localStorage.getItem('idiomProgress')) || {};
+
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+      document.getElementById(page).classList.remove('hidden');
+      
+      if (page === 'scenes') renderScenes();
+      if (page === 'bank') renderBank();
+      if (page === 'progress') renderProgress();
+    }
+
+    function renderScenes() {
+      const container = document.getElementById('scenes-list');
+      container.innerHTML = scenes.map(scene => `
+        <div class="card bg-white rounded-3xl shadow-lg p-6 cursor-pointer hover:shadow-2xl" onclick="startQuiz(${scene.id})">
+          <h3 class="font-bold text-2xl mb-2">${scene.title}</h3>
+          <p class="text-gray-500 mb-6">${scene.movie}</p>
+          <div class="bg-indigo-100 text-indigo-700 text-sm font-medium w-fit px-4 py-1.5 rounded-2xl">
+            ${scene.idiom}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function startQuiz(id) {
+      const scene = scenes.find(s => s.id === id);
+      const content = document.getElementById('quiz-content');
+      
+      content.innerHTML = `
+        <h2 class="text-3xl font-bold mb-6">${scene.title}</h2>
+        
+        <div class="aspect-video bg-black rounded-2xl overflow-hidden mb-8 shadow-inner">
+          <iframe width="100%" height="100%" src="${scene.video}" frameborder="0" allowfullscreen></iframe>
+        </div>
+
+        <div class="bg-gray-100 p-6 rounded-2xl mb-8 whitespace-pre-line text-lg leading-relaxed">
+          ${scene.text}
+        </div>
+
+        <h3 class="text-xl font-semibold mb-5">What does "<span class="text-indigo-600">"${scene.idiom}"</span>" mean in this scene?</h3>
+        
+        <div class="grid gap-4" id="options"></div>
+      `;
+
+      const optionsDiv = document.getElementById('options');
+      scene.options.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = "w-full text-left p-6 rounded-2xl border-2 border-gray-200 hover:border-indigo-400 text-lg transition-all";
+        btn.textContent = opt;
+        btn.onclick = () => checkAnswer(scene, i, btn);
+        optionsDiv.appendChild(btn);
+      });
+
+      showPage('quiz');
+    }
+
+    function checkAnswer(scene, selected, buttonElement) {
+      const isCorrect = selected === scene.correct;
+      const allButtons = document.querySelectorAll('#options button');
+      
+      allButtons.forEach(btn => btn.disabled = true);
+      
+      if (isCorrect) {
+        buttonElement.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+        progress[scene.id] = true;
+        localStorage.setItem('idiomProgress', JSON.stringify(progress));
+      } else {
+        buttonElement.classList.add('bg-red-100', 'border-red-500', 'text-red-700');
+        // highlight correct answer
+        allButtons[scene.correct].classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+      }
+
+      // Показываем результат красиво
+      setTimeout(() => {
+        const resultHTML = `
+          <div class="mt-8 p-8 rounded-3xl ${isCorrect ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}">
+            <h3 class="text-2xl font-bold ${isCorrect ? 'text-green-700' : 'text-red-700'} mb-3">
+              ${isCorrect ? '✅ Excellent!' : '❌ Not quite'}
+            </h3>
+            <p class="text-xl"><strong>"${scene.idiom}"</strong> means: <span class="text-indigo-600">${scene.meaning}</span></p>
+            <button onclick="showPage('scenes')" 
+                    class="mt-6 bg-indigo-600 text-white px-8 py-4 rounded-2xl hover:bg-indigo-700">
+              Try Another Scene →
+            </button>
+          </div>
+        `;
+        document.getElementById('quiz-content').innerHTML += resultHTML;
+      }, 800);
+    }
+
+    function renderBank() {
+      const container = document.getElementById('bank-list');
+      container.innerHTML = scenes.map(scene => `
+        <div class="bg-white rounded-3xl shadow p-8">
+          <h3 class="text-2xl font-bold text-indigo-700">"${scene.idiom}"</h3>
+          <p class="text-lg mt-3 text-gray-700">${scene.meaning}</p>
+          <p class="text-sm text-gray-500 mt-6">${scene.movie}</p>
+        </div>
+      `).join('');
+    }
+
+    function renderProgress() {
+      const done = Object.keys(progress).length;
+      const total = scenes.length;
+      const percent = total ? Math.round(done / total * 100) : 0;
+
+      document.getElementById('progress-content').innerHTML = `
+        <div class="text-center">
+          <div class="text-8xl font-bold text-indigo-600 mb-4">${percent}%</div>
+          <p class="text-2xl text-gray-600">${done} out of ${total} scenes completed</p>
+        </div>
+      `;
+    }
+
+    // Запуск
+    showPage('home');
+  </script>
+</body>
+</html>
